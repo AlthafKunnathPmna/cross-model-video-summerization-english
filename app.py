@@ -1,5 +1,6 @@
 import streamlit as st
 import os
+import tempfile
 
 from video_processor import extract_frames, extract_audio
 from audio_to_text import extract_important_audio
@@ -17,7 +18,9 @@ video = st.file_uploader("Upload Lecture Video", type=["mp4", "mkv", "avi"])
 if video:
     os.makedirs("temp", exist_ok=True)
 
-    video_path = "temp/input.mp4"
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tmp:
+    tmp.write(uploaded_file.read())
+    video_path = tmp.name
     with open(video_path, "wb") as f:
         f.write(video.read())
 

@@ -19,8 +19,8 @@ if video:
     os.makedirs("temp", exist_ok=True)
 
     with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tmp:
-    tmp.write(uploaded_file.read())
-    video_path = tmp.name
+        tmp.write(video.read())
+        video_path = tmp.name
     with open(video_path, "wb") as f:
         f.write(video.read())
 

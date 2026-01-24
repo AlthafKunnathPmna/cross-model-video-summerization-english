@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+venv/
+.env/
+
+# Models / weights
+*.pt
+*.onnx
+*.h5
+*.pkl
+
+# Temp
+temp/
+logs/

@@ -1,0 +1,10 @@
+streamlit 
+ffmpeg-python 
+openai-whisper
+transformers 
+pillow 
+easyocr 
+torch 
+torchvision 
+torchaudio 
+accelerate

@@ -1,5 +1,6 @@
 streamlit 
 ffmpeg-python
+imageio-ffmpeg
 openai-whisper
 transformers 
 pillow 

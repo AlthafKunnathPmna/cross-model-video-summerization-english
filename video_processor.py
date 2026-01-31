@@ -95,11 +95,69 @@
 #         raise
 
 
+# import os
+# import ffmpeg
+# import imageio_ffmpeg
+
+# # Use bundled FFmpeg binary (NO system FFmpeg needed)
+# FFMPEG_BINARY = imageio_ffmpeg.get_ffmpeg_exe()
+
+
+# def extract_frames(video_path, fps=1):
+#     frames_dir = os.path.abspath("temp/frames")
+#     os.makedirs(frames_dir, exist_ok=True)
+
+#     if not os.path.exists(video_path):
+#         raise FileNotFoundError(f"Video file not found: {video_path}")
+
+#     if os.path.getsize(video_path) == 0:
+#         raise ValueError("Uploaded video file is empty")
+
+#     try:
+#         ffmpeg.input(video_path).filter(
+#             "fps", fps=fps
+#         ).output(
+#             os.path.join(frames_dir, "frame_%04d.jpg")
+#         ).overwrite_output().run(
+#             cmd=FFMPEG_BINARY,
+#             capture_stdout=True,
+#             capture_stderr=True
+#         )
+
+#     except ffmpeg.Error as e:
+#         print("========== FFMPEG FRAME ERROR ==========")
+#         print("STDOUT:", e.stdout.decode(errors="ignore") if e.stdout else "")
+#         print("STDERR:", e.stderr.decode(errors="ignore") if e.stderr else "")
+#         print("=======================================")
+#         raise
+
+
+# def extract_audio(video_path):
+#     audio_dir = os.path.abspath("temp")
+#     os.makedirs(audio_dir, exist_ok=True)
+
+#     try:
+#         ffmpeg.input(video_path).output(
+#             os.path.join(audio_dir, "audio.wav"),
+#             ac=1,
+#             ar="16000"
+#         ).overwrite_output().run(
+#             cmd=FFMPEG_BINARY,
+#             capture_stdout=True,
+#             capture_stderr=True
+#         )
+
+#     except ffmpeg.Error as e:
+#         print("========== FFMPEG AUDIO ERROR ==========")
+#         print("STDOUT:", e.stdout.decode(errors="ignore") if e.stdout else "")
+#         print("STDERR:", e.stderr.decode(errors="ignore") if e.stderr else "")
+#         print("=======================================")
+#         raise
+
 import os
-import ffmpeg
+import subprocess
 import imageio_ffmpeg
 
-# Use bundled FFmpeg binary (NO system FFmpeg needed)
 FFMPEG_BINARY = imageio_ffmpeg.get_ffmpeg_exe()
 
 
@@ -108,48 +166,59 @@ def extract_frames(video_path, fps=1):
     os.makedirs(frames_dir, exist_ok=True)
 
     if not os.path.exists(video_path):
-        raise FileNotFoundError(f"Video file not found: {video_path}")
+        raise FileNotFoundError(f"Video not found: {video_path}")
 
     if os.path.getsize(video_path) == 0:
-        raise ValueError("Uploaded video file is empty")
+        raise ValueError("Uploaded video is empty")
 
-    try:
-        ffmpeg.input(video_path).filter(
-            "fps", fps=fps
-        ).output(
-            os.path.join(frames_dir, "frame_%04d.jpg")
-        ).overwrite_output().run(
-            cmd=FFMPEG_BINARY,
-            capture_stdout=True,
-            capture_stderr=True
-        )
+    output_pattern = os.path.join(frames_dir, "frame_%04d.jpg")
 
-    except ffmpeg.Error as e:
+    cmd = [
+        FFMPEG_BINARY,
+        "-i", video_path,
+        "-vf", f"fps={fps}",
+        output_pattern
+    ]
+
+    result = subprocess.run(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True
+    )
+
+    if result.returncode != 0:
         print("========== FFMPEG FRAME ERROR ==========")
-        print("STDOUT:", e.stdout.decode(errors="ignore") if e.stdout else "")
-        print("STDERR:", e.stderr.decode(errors="ignore") if e.stderr else "")
+        print(result.stderr)
         print("=======================================")
-        raise
+        raise RuntimeError("FFmpeg frame extraction failed")
 
 
 def extract_audio(video_path):
     audio_dir = os.path.abspath("temp")
     os.makedirs(audio_dir, exist_ok=True)
 
-    try:
-        ffmpeg.input(video_path).output(
-            os.path.join(audio_dir, "audio.wav"),
-            ac=1,
-            ar="16000"
-        ).overwrite_output().run(
-            cmd=FFMPEG_BINARY,
-            capture_stdout=True,
-            capture_stderr=True
-        )
+    audio_path = os.path.join(audio_dir, "audio.wav")
 
-    except ffmpeg.Error as e:
+    cmd = [
+        FFMPEG_BINARY,
+        "-i", video_path,
+        "-ac", "1",
+        "-ar", "16000",
+        audio_path
+    ]
+
+    result = subprocess.run(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True
+    )
+
+    if result.returncode != 0:
         print("========== FFMPEG AUDIO ERROR ==========")
-        print("STDOUT:", e.stdout.decode(errors="ignore") if e.stdout else "")
-        print("STDERR:", e.stderr.decode(errors="ignore") if e.stderr else "")
+        print(result.stderr)
         print("=======================================")
-        raise
+        raise RuntimeError("FFmpeg audio extraction failed")
+
+    return audio_path
